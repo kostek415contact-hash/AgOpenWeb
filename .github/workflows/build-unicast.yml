@@ -1,0 +1,284 @@
+name: Build wszystkich platform (z latka unicast)
+
+# Pobiera NAJNOWSZY kod autorow (AgOpenGPS-Official/AgOpenWeb), nakłada patches/unicast.patch
+# (wysylanie ramek na adres modulu zamiast na broadcast) i buduje te same paczki co autorzy:
+# Linux (demon + launcher, x64/arm64), Windows, macOS, Android. Wynik: Release "unicast-latest"
+# w TYM repozytorium.
+#
+# Uruchamia sie co tydzien (poniedzialek ~06:17 czasu PL) i recznie (Actions -> Run workflow).
+# Android: wymaga sekretow ANDROID_KEYSTORE_BASE64 i ANDROID_KEYSTORE_PASSWORD (stabilny klucz podpisu).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: write   # tworzenie Release w tym repozytorium
+
+concurrency:
+  group: build-unicast
+  cancel-in-progress: true
+
+env:
+  UPSTREAM_REPO: AgOpenGPS-Official/AgOpenWeb
+  UPSTREAM_REF: develop            # zmien na main dla wersji stabilniejszej
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      state: ${{ steps.patch.outputs.state }}
+      sha: ${{ steps.patch.outputs.sha }}
+    steps:
+      - name: Kod autorow (upstream)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.UPSTREAM_REPO }}
+          ref: ${{ env.UPSTREAM_REF }}
+          path: src
+
+      - name: Lataka z tego repozytorium
+        uses: actions/checkout@v4
+        with:
+          path: fork
+          sparse-checkout: patches
+          sparse-checkout-cone-mode: true
+
+      - name: Nalozenie lataki
+        id: patch
+        working-directory: src
+        run: |
+          PATCH="$GITHUB_WORKSPACE/fork/patches/unicast.patch"
+          [ -f "$PATCH" ] || { echo "::error::Brak pliku patches/unicast.patch w repozytorium."; exit 1; }
+          if git apply --check "$PATCH" 2>/dev/null; then
+            git apply "$PATCH"
+            echo "state=zastosowana" >> "$GITHUB_OUTPUT"
+          elif git apply --check -R "$PATCH" 2>/dev/null; then
+            echo "state=juz-w-upstream" >> "$GITHUB_OUTPUT"
+            echo "Autorzy wlaczyli juz ta zmiane - buduje bez lataki."
+          else
+            echo "::error::patches/unicast.patch nie nalozyl sie na najnowszy kod autorow (zmienil sie UdpCommunicationService.cs). Trzeba odswiezyc latke."
+            exit 1
+          fi
+          echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Spakuj poprawiony kod
+        run: tar czf patched-src.tar.gz -C src .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: patched-src
+          path: patched-src.tar.gz
+          retention-days: 3
+
+  linux:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: patched-src
+      - run: mkdir src && tar xzf patched-src.tar.gz -C src
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Linux demon (${{ matrix.arch }})
+        working-directory: src
+        run: ./deploy/linux/package.sh --arch ${{ matrix.arch }} --out "$GITHUB_WORKSPACE/dist"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agopenweb-linux-${{ matrix.arch }}
+          path: dist/agopenweb-linux-*.tar.gz
+          retention-days: 7
+
+  linux-launcher:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: patched-src
+      - run: mkdir src && tar xzf patched-src.tar.gz -C src
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Linux launcher z oknem (${{ matrix.arch }})
+        working-directory: src
+        run: ./deploy/linux/launcher/package.sh --arch ${{ matrix.arch }} --out "$GITHUB_WORKSPACE/dist"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agopenweb-launcher-linux-${{ matrix.arch }}
+          path: dist/agopenweb-launcher-linux-*.tar.gz
+          retention-days: 7
+
+  windows:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: patched-src
+      - run: mkdir src && tar xzf patched-src.tar.gz -C src
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Windows (x64)
+        working-directory: src
+        run: ./deploy/windows/package.sh --arch x64 --out "$GITHUB_WORKSPACE/dist"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agopenweb-win-x64
+          path: dist/agopenweb-win-x64.zip
+          retention-days: 7
+
+  macos:
+    needs: prepare
+    runs-on: macos-14
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: patched-src
+      - run: mkdir src && tar xzf patched-src.tar.gz -C src
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: macOS (arm64 .dmg)
+        working-directory: src
+        run: ./deploy/macos/package.sh --out "$GITHUB_WORKSPACE/dist"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agopenweb-macos-arm64
+          path: dist/agopenweb-macos-arm64.dmg
+          retention-days: 7
+
+  android:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: patched-src
+      - run: mkdir src && tar xzf patched-src.tar.gz -C src
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'microsoft'
+          java-version: '17'
+
+      - name: Install Android workload
+        run: |
+          for i in 1 2 3; do
+            dotnet workload install android && break
+            echo "Attempt $i failed, retrying in 10s..."
+            sleep 10
+          done
+
+      - name: Restore dependencies
+        working-directory: src
+        run: dotnet restore Platforms/AgOpenWeb.Android/AgOpenWeb.Android.csproj
+
+      - name: Decode signing keystore
+        id: keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/agopenweb-release.keystore"
+            echo "path=$RUNNER_TEMP/agopenweb-release.keystore" >> "$GITHUB_OUTPUT"
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Brak sekretu ANDROID_KEYSTORE_BASE64 - APK podpisany kluczem tymczasowym (nie zaktualizuje sie nad poprzednia wersja)."
+          fi
+
+      - name: Verify signing keystore
+        if: steps.keystore.outputs.present == 'true'
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          KS="${{ steps.keystore.outputs.path }}"
+          if ! keytool -list -keystore "$KS" -storepass "$KS_PASS" > ks.txt 2>&1; then
+            echo "::error::Nie mozna otworzyc keystore - zle ANDROID_KEYSTORE_PASSWORD albo uszkodzony ANDROID_KEYSTORE_BASE64."
+            cat ks.txt
+            exit 1
+          fi
+          if ! keytool -list -keystore "$KS" -storepass "$KS_PASS" -alias agopenweb >/dev/null 2>&1; then
+            echo "::error::Keystore nie ma aliasu 'agopenweb'."
+            exit 1
+          fi
+          echo "OK: haslo poprawne, alias 'agopenweb' jest."
+
+      - name: Build Android APK
+        working-directory: src
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          ARGS=(publish Platforms/AgOpenWeb.Android/AgOpenWeb.Android.csproj
+                -c Release -f net10.0-android -o publish/android)
+          if [ "${{ steps.keystore.outputs.present }}" = "true" ]; then
+            ARGS+=(-p:AndroidKeyStore=true
+                   "-p:AndroidSigningKeyStore=${{ steps.keystore.outputs.path }}"
+                   -p:AndroidSigningKeyAlias=agopenweb
+                   -p:AndroidSigningStorePass=env:KS_PASS
+                   -p:AndroidSigningKeyPass=env:KS_PASS)
+          fi
+          dotnet "${ARGS[@]}"
+
+      - name: Zbierz APK
+        working-directory: src
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          APK=$(find publish/android -type f -name "*-Signed.apk" | head -1)
+          [ -n "$APK" ] || { echo "::error::Nie znaleziono podpisanego APK."; exit 1; }
+          cp "$APK" "$GITHUB_WORKSPACE/dist/agopenweb-android.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agopenweb-android
+          path: dist/agopenweb-android.apk
+          retention-days: 7
+
+  release:
+    needs: [prepare, linux, linux-launcher, windows, macos, android]
+    # Release powstaje, gdy zbudowala sie choc czesc paczek (jedna platforma nie blokuje reszty).
+    if: ${{ always() && needs.prepare.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: agopenweb-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publikacja w Releases tego repozytorium
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ needs.prepare.outputs.sha }}
+          STATE: ${{ needs.prepare.outputs.state }}
+        run: |
+          mapfile -t FILES < <(find dist -type f \( -name '*.tar.gz' -o -name '*.zip' -o -name '*.dmg' -o -name '*.apk' \))
+          [ "${#FILES[@]}" -gt 0 ] || { echo "::error::Zadna platforma sie nie zbudowala."; exit 1; }
+          printf '%s\n' "${FILES[@]}"
+          gh release delete unicast-latest --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
+          gh release create unicast-latest "${FILES[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "AgOpenWeb (unicast) $(date +'%Y-%m-%d')" \
+            --prerelease \
+            --notes "Zbudowano z ${UPSTREAM_REPO}@${UPSTREAM_REF} (${SHA}), lataka unicast: ${STATE}. Pliki: Linux (agopenweb-linux-*, agopenweb-launcher-linux-*), Windows (agopenweb-win-x64.zip), macOS (agopenweb-macos-arm64.dmg), Android (agopenweb-android.apk). Brakujacy plik oznacza, ze dana platforma sie nie zbudowala - sprawdz zakladke Actions."
