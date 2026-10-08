@@ -62,6 +62,23 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
     private const int ModuleTimeoutSeconds = 5;
     private const int DiscoveryRefreshSeconds = 30;
 
+    // Unicast to modules. Once a module has answered, frames go to ITS address instead of the
+    // subnet broadcast (x.y.z.255). Wi-Fi access points - notably phone hotspots - hold broadcast
+    // and multicast frames until the next DTIM beacon, so ~200 broadcast frames/s (PGN 254 + 239)
+    // queue up and add seconds of latency for every client of the hotspot. Unicast frames are
+    // delivered immediately. One target per module address, so separate AutoSteer/Machine/IMU
+    // boards keep working. Set AGOPENWEB_UDP_BROADCAST=1 to restore the old subnet broadcast.
+    private sealed class ModuleTarget
+    {
+        public readonly IPEndPoint Endpoint;
+        public long LastSeenMs;
+        public ModuleTarget(IPEndPoint endpoint, long nowMs) { Endpoint = endpoint; LastSeenMs = nowMs; }
+    }
+    private static readonly bool _forceBroadcast =
+        Environment.GetEnvironmentVariable("AGOPENWEB_UDP_BROADCAST") == "1";
+    private const int ModuleTargetForgetSeconds = 60;
+    private ModuleTarget[] _moduleTargets = Array.Empty<ModuleTarget>();
+
     // Module connection tracking - Hello responses (2 second timeout)
     private DateTime _lastHelloFromAutoSteer = DateTime.MinValue;
     private DateTime _lastHelloFromMachine = DateTime.MinValue;
@@ -146,6 +163,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
             // Discover broadcast endpoints on all network interfaces
             _discoveryEndpoints = GetBroadcastEndpoints();
             _lockedEndpoint = null;
+            _moduleTargets = Array.Empty<ModuleTarget>();
             _lastDiscoveryRefresh = DateTime.UtcNow;
 
             IsConnected = true;
@@ -202,7 +220,11 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
             _lockedEndpoint = null;
         }
 
-        if (_lockedEndpoint != null)
+        if (!_forceBroadcast && SendToLiveModules(data))
+        {
+            // Connected (unicast): frames already sent to each live module + localhost
+        }
+        else if (_lockedEndpoint != null)
         {
             // Connected: send to locked endpoint + localhost only
             SendPacket(data, _lockedEndpoint);
@@ -222,6 +244,59 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
             _perfTxCount++;
             EmitTxIfWindowElapsed();
         }
+    }
+
+    /// <summary>
+    /// Unicast the frame to every module that answered within <see cref="ModuleTimeoutSeconds"/>
+    /// (plus localhost for the simulator). Returns false when no module is live, so the caller
+    /// falls back to broadcast discovery. Allocation-free.
+    /// </summary>
+    private bool SendToLiveModules(byte[] data)
+    {
+        var targets = _moduleTargets;
+        long nowMs = Environment.TickCount64;
+        bool any = false;
+        for (int i = 0; i < targets.Length; i++)
+        {
+            if (nowMs - Volatile.Read(ref targets[i].LastSeenMs) <= ModuleTimeoutSeconds * 1000L)
+            {
+                SendPacket(data, targets[i].Endpoint);
+                any = true;
+            }
+        }
+        if (any)
+            SendPacket(data, _localhostEndpoint);
+        return any;
+    }
+
+    /// <summary>
+    /// Remember (or refresh) the address of a module that just sent us a frame. Called only from
+    /// the receive thread, so the copy-on-write array has a single writer; the send thread reads it
+    /// without locking.
+    /// </summary>
+    private void NoteModuleTarget(IPAddress remoteIP)
+    {
+        if (IPAddress.IsLoopback(remoteIP)) return;
+
+        long nowMs = Environment.TickCount64;
+        var targets = _moduleTargets;
+        for (int i = 0; i < targets.Length; i++)
+        {
+            if (targets[i].Endpoint.Address.Equals(remoteIP))
+            {
+                Volatile.Write(ref targets[i].LastSeenMs, nowMs);
+                return;
+            }
+        }
+
+        // New module: drop long-silent entries, then add this one.
+        var list = new List<ModuleTarget>(targets.Length + 1);
+        foreach (var t in targets)
+            if (nowMs - Volatile.Read(ref t.LastSeenMs) <= ModuleTargetForgetSeconds * 1000L)
+                list.Add(t);
+        list.Add(new ModuleTarget(new IPEndPoint(remoteIP, 8888), nowMs));
+        _moduleTargets = list.ToArray();
+        System.Diagnostics.Debug.WriteLine($"Unicast target added: {remoteIP}:8888");
     }
 
     private void SendPacket(byte[] data, IPEndPoint endpoint)
@@ -513,6 +588,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
                 _lastDataFromAutoSteer = now;
                 _autoSteerIp = remoteIp;
                 _lastModuleResponse = DateTime.UtcNow;
+                NoteModuleTarget(remoteEndPoint.Address);
                 break;
 
             // Machine PGNs (receive-only, only Hello matters)
@@ -651,17 +727,24 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
     private void ResetDiscovery()
     {
         _lockedEndpoint = null;
+        _moduleTargets = Array.Empty<ModuleTarget>();
         _discoveryEndpoints = GetBroadcastEndpoints();
         _lastDiscoveryRefresh = DateTime.UtcNow;
     }
 
     /// <summary>
-    /// Lock outgoing packets to the subnet of a responding module.
-    /// Assumes /24 subnet (most common for field hardware).
+    /// Remember a responding module for unicast sending (default). With AGOPENWEB_UDP_BROADCAST=1
+    /// the old behaviour is kept: lock outgoing packets to the module's /24 subnet broadcast.
     /// </summary>
     private void LockToSubnet(IPAddress remoteIP)
     {
         _lastModuleResponse = DateTime.UtcNow;
+
+        if (!_forceBroadcast)
+        {
+            NoteModuleTarget(remoteIP);
+            return;
+        }
 
         if (_lockedEndpoint != null || IPAddress.IsLoopback(remoteIP))
             return;
