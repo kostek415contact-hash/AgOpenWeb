@@ -1,0 +1,135 @@
+diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
+index dd7dde5..1d0aa95 100644
+--- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
++++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
+@@ -331,6 +331,23 @@
+       max-width: calc(100vw - 96px); color: var(--text);
+       background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px;
+       box-shadow: 0 8px 28px rgba(0,0,0,0.5); z-index: 31; }
++    /* Short screens (a phone held sideways is only ~400 px tall): the left bar must never run off the bottom. It never
++       grows taller than the space under the status bar, scrolls with a finger when it still does not fit, and its
++       buttons get smaller as the screen gets shorter so that all of them are visible at once on a typical phone. */
++    #leftnav { max-height: calc(100vh - 56px - var(--sat) - var(--sab) - 8px); overflow-y: auto; overscroll-behavior: contain;
++      scrollbar-width: none; -webkit-overflow-scrolling: touch; touch-action: pan-y; box-sizing: border-box; }
++    #leftnav::-webkit-scrollbar { display: none; }
++    #leftnav .ln-btn { flex: 0 0 auto; }
++    @media (max-height: 640px) {
++      #leftnav { gap: 5px; padding: 6px 6px 6px 0; }
++      .ln-btn { width: 48px; height: 48px; padding: 6px; }
++      .ln-panel { left: calc(64px + var(--sal)); max-width: calc(100vw - 80px); }
++    }
++    @media (max-height: 480px) {
++      #leftnav { gap: 4px; padding: 5px 5px 5px 0; }
++      .ln-btn { width: 38px; height: 38px; padding: 5px; }
++      .ln-panel { left: calc(52px + var(--sal)); max-width: calc(100vw - 68px); }
++    }
+     /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
+     .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
+     /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
+@@ -1158,6 +1175,106 @@
+     .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+     .bp-statlbl { font-size: 12px; color: var(--text-dim); }
+     .bp-statval { font-size: 18px; font-weight: 700; }
++
++    /* ===== Small screens (phone, either way up) =====
++       Every left-nav panel must fit on the screen: never wider or taller than the free space beside / under the bars,
++       scroll inside itself when its content is larger, and fold multi-column layouts into one column. --lnoff is the
++       width the left bar takes (it gets narrower on short screens, see the #leftnav rules above). */
++    :root { --lnoff: 80px; }
++    @media (max-height: 640px) { :root { --lnoff: 64px; } }
++    @media (max-height: 480px) { :root { --lnoff: 52px; } }
++    @media (max-width: 760px), (max-height: 640px) {
++      html .ln-panel { left: calc(var(--lnoff) + var(--sal)); box-sizing: border-box; min-width: 0;
++        max-width: calc(100vw - var(--lnoff) - var(--sal) - var(--sar) - 8px);
++        max-height: calc(100vh - 56px - var(--sat) - var(--sab) - 8px);
++        max-height: calc(100dvh - 56px - var(--sat) - var(--sab) - 8px);
++        overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 10px; }
++      html .ln-wide, html .fm-full { width: auto; }
++      html .fm-full { height: auto; }
++      html .fm-full .vs-tree { max-height: none; columns: 1; }
++      .hub-cols { grid-template-columns: minmax(0, 1fr); gap: 10px; }
++      .cfg-cols2 { grid-template-columns: minmax(0, 1fr); }
++      .as-body { flex-wrap: wrap; }
++      .as-left, .as-right { width: 100%; flex: 1 1 100%; }
++      .as-right { border-left: 0; border-top: 1px solid var(--border); }
++      .sa-grid { grid-template-columns: repeat(2, 1fr); }
++    }
++
++    .of-fld { min-width: 0; } .of-input { width: 100%; min-width: 0; box-sizing: border-box; }
++    @media (max-width: 900px) {
++      /* the bottom bars (simulator, field tools) are wider than a phone: keep them on the screen and let a finger slide them */
++      #bottomstack { width: max-content; max-width: calc(100vw - 8px); }
++      #bottomnav { max-width: 100%; }
++      #simbar, #bottomnav .bn-bar { max-width: calc(100vw - 8px); overflow-x: auto; scrollbar-width: none;
++        -webkit-overflow-scrolling: touch; touch-action: pan-x; }
++      #simbar::-webkit-scrollbar, #bottomnav .bn-bar::-webkit-scrollbar { display: none; }
++      #simbar > *, #bottomnav .bn-btn { flex-shrink: 0; }
++    }
++    @media (max-width: 900px) and (max-height: 640px) {
++      #bottomstack { left: calc(50% + var(--lnoff) / 2); max-width: calc(100vw - var(--lnoff) - 12px); }
++      #simbar, #bottomnav .bn-bar { max-width: calc(100vw - var(--lnoff) - 12px); }
++    }
++
++    @media (max-width: 760px), (max-height: 640px) {
++      .vc-diagrow { flex-wrap: wrap; }
++      .vc-fieldcol, .vc-2col .vc-fieldcol { flex: 1 1 100%; grid-template-columns: auto minmax(0, max-content); }
++      .vc-fieldcol .cfg-sel, .vc-fieldcol select { width: 100%; max-width: 100%; min-width: 0; }
++      .vc-fieldcol:has(select), .vc-2col .vc-fieldcol:has(select) { grid-template-columns: auto minmax(0, 1fr); }
++      .vc-2col { grid-template-columns: minmax(0, 1fr); gap: 10px; }
++      .vc-diagrow .vc-fieldcol { min-width: 0; }
++      .bm-toolbar { flex-wrap: wrap; justify-content: flex-start; }
++      .cfg-tabs { flex-wrap: wrap; }
++    }
++
++    /* Narrow portrait phone: the status bar has to squeeze into ~360-410 px (it is ~480 px wide at full size). */
++    @media (max-width: 560px) {
++      #statusbar { gap: 4px; padding: 0 6px; font-size: 13px; }
++      #statusbar button { padding: 2px 4px; gap: 4px; }
++      #sb-pause { display: none; }
++      .sb-left { min-width: 0; flex: 0 1 auto; }
++      .sb-spacer { flex: 0 1 0; }
++      .sb-speed-wrap { min-width: 50px; } .sb-hdg-wrap { min-width: 62px; }
++      #sb-speed, #sb-hdg { font-size: 20px; }
++      #sb-fs { width: 30px; height: 30px; flex: none; }
++      #sb-diag { gap: 12px; padding: 0 8px 0 8px; overflow: hidden; }
++    }
++    @media (max-width: 460px) { #sb-roletext { display: none; } }
++    /* Dialogs (confirm, tracks, flags ...): within the screen, scroll when taller. */
++    @media (max-width: 760px), (max-height: 640px) {
++      .dlg-card { min-width: 0; width: calc(100vw - 16px); max-width: 380px; box-sizing: border-box;
++        max-height: calc(100vh - 68px - var(--sat) - var(--sab)); max-height: calc(100dvh - 68px - var(--sat) - var(--sab));
++        overflow: auto; padding: 14px; }
++      .dlg-wide { min-width: 0; max-width: min(460px, calc(100vw - 16px)); }
++    }
++    @media (max-height: 480px) { .dlg-card { margin-top: 8px; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); } }
++    /* Set-up wizard: one column on a phone, tighter margins. */
++    @media (max-width: 760px), (max-height: 640px) {
++      .wz-header { padding: 10px 14px; } .wz-step { right: 14px; top: 12px; }
++      .wz-body { padding: 12px 14px; }
++      .wz-cards { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 12px auto; }
++      .wz-card { padding: 10px; } .wz-card img { width: 64px; height: 64px; }
++      .wz-panels { grid-template-columns: minmax(0, 1fr); gap: 12px; }
++      .wz-panel img.dia { height: 150px; }
++      .wz-row { flex-wrap: wrap; padding: 10px 12px; }
++      .wz-seg { flex-wrap: wrap; }
++    }
++
++    /* Right bar (field operations): same treatment as the left bar - stays on the screen, scrolls, smaller buttons on short screens;
++       the roll gauge + camera pad move left of it so they never sit underneath. */
++    #rightnav { max-height: calc(100vh - 56px - var(--sat) - var(--sab) - 8px); overflow-y: auto; box-sizing: border-box;
++      scrollbar-width: none; overscroll-behavior: contain; touch-action: pan-y; }
++    #rightnav::-webkit-scrollbar { display: none; }
++    #rightnav .rn-btn { flex: 0 0 auto; }
++    @media (max-height: 640px) {
++      #rightnav { gap: 5px; padding: 6px; }
++      .rn-btn { width: 48px; height: 48px; padding: 6px; }
++      #lowerright { right: calc(68px + var(--sar)); }
++    }
++    @media (max-height: 480px) {
++      #rightnav { gap: 4px; padding: 5px; }
++      .rn-btn { width: 42px; height: 42px; padding: 5px; }
++      #lowerright { right: calc(60px + var(--sar)); bottom: calc(60px + var(--sab)); transform: scale(0.8); transform-origin: bottom right; }
++    }
+   </style>
+ </head>
+ <body>

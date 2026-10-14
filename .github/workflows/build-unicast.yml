@@ -1,7 +1,7 @@
 name: Build wszystkich platform (z latka unicast)
 
-# Pobiera NAJNOWSZY kod autorow (AgOpenGPS-Official/AgOpenWeb), nakłada patches/unicast.patch
-# (wysylanie ramek na adres modulu zamiast na broadcast) i buduje te same paczki co autorzy:
+# Pobiera NAJNOWSZY kod autorow (AgOpenGPS-Official/AgOpenWeb), nakłada latki z patches/*.patch
+# (unicast: wysylanie ramek na adres modulu zamiast na broadcast; small-screens: panele na telefonie) i buduje te same paczki co autorzy:
 # Linux (demon + launcher, x64/arm64), Windows, macOS, Android. Wynik: Release "unicast-latest"
 # w TYM repozytorium.
 #
@@ -48,22 +48,32 @@ jobs:
           sparse-checkout: patches
           sparse-checkout-cone-mode: true
 
-      - name: Nalozenie lataki
+      - name: Nalozenie latek
         id: patch
         working-directory: src
         run: |
-          PATCH="$GITHUB_WORKSPACE/fork/patches/unicast.patch"
-          [ -f "$PATCH" ] || { echo "::error::Brak pliku patches/unicast.patch w repozytorium."; exit 1; }
-          if git apply --check "$PATCH" 2>/dev/null; then
-            git apply "$PATCH"
-            echo "state=zastosowana" >> "$GITHUB_OUTPUT"
-          elif git apply --check -R "$PATCH" 2>/dev/null; then
-            echo "state=juz-w-upstream" >> "$GITHUB_OUTPUT"
-            echo "Autorzy wlaczyli juz ta zmiane - buduje bez lataki."
-          else
-            echo "::error::patches/unicast.patch nie nalozyl sie na najnowszy kod autorow (zmienil sie UdpCommunicationService.cs). Trzeba odswiezyc latke."
-            exit 1
-          fi
+          # patches/unicast.patch  - WYMAGANA (wysylanie ramek na adres modulu zamiast na broadcast); brak = blad.
+          # patches/*.patch (reszta, np. small-screens.patch = panele na malych ekranach) - OPCJONALNE: jesli nie
+          # nakladaja sie na nowszy kod autorow, build idzie dalej bez nich (ostrzezenie w logu), zeby nie blokowac paczek.
+          STATE=""
+          for PATCH in "$GITHUB_WORKSPACE"/fork/patches/*.patch; do
+            NAME=$(basename "$PATCH" .patch)
+            if git apply --check "$PATCH" 2>/dev/null; then
+              git apply "$PATCH"
+              STATE="$STATE $NAME:zastosowana"
+            elif git apply --check -R "$PATCH" 2>/dev/null; then
+              STATE="$STATE $NAME:juz-w-upstream"
+              echo "Autorzy wlaczyli juz zmiane '$NAME' - pomijam latke."
+            elif [ "$NAME" = "unicast" ]; then
+              echo "::error::patches/unicast.patch nie nalozyl sie na najnowszy kod autorow (zmienil sie UdpCommunicationService.cs). Trzeba odswiezyc latke."
+              exit 1
+            else
+              STATE="$STATE $NAME:POMINIETA"
+              echo "::warning::patches/$NAME.patch nie nalozyl sie na najnowszy kod autorow - budowa bez niej. Trzeba odswiezyc latke."
+            fi
+          done
+          [ -f "$GITHUB_WORKSPACE/fork/patches/unicast.patch" ] || { echo "::error::Brak pliku patches/unicast.patch w repozytorium."; exit 1; }
+          echo "state=${STATE# }" >> "$GITHUB_OUTPUT"
           echo "sha=$(git rev-parse --short=7 HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Spakuj poprawiony kod
@@ -281,4 +291,4 @@ jobs:
             --target "$GITHUB_SHA" \
             --title "AgOpenWeb (unicast) $(date +'%Y-%m-%d')" \
             --prerelease \
-            --notes "Zbudowano z ${UPSTREAM_REPO}@${UPSTREAM_REF} (${SHA}), lataka unicast: ${STATE}. Pliki: Linux (agopenweb-linux-*, agopenweb-launcher-linux-*), Windows (agopenweb-win-x64.zip), macOS (agopenweb-macos-arm64.dmg), Android (agopenweb-android.apk). Brakujacy plik oznacza, ze dana platforma sie nie zbudowala - sprawdz zakladke Actions."
+            --notes "Zbudowano z ${UPSTREAM_REPO}@${UPSTREAM_REF} (${SHA}), latki: ${STATE}. Pliki: Linux (agopenweb-linux-*, agopenweb-launcher-linux-*), Windows (agopenweb-win-x64.zip), macOS (agopenweb-macos-arm64.dmg), Android (agopenweb-android.apk). Brakujacy plik oznacza, ze dana platforma sie nie zbudowala - sprawdz zakladke Actions."
