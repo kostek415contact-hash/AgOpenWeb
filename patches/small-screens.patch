@@ -1,5 +1,5 @@
-diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..07dd9c5 100644
+diff --git a/a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
+index dd7dde5..aba202c 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..07dd9c5 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,267 @@
+@@ -1158,6 +1175,300 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -55,7 +55,8 @@ index dd7dde5..07dd9c5 100644
 +      .sa-grid { grid-template-columns: repeat(2, 1fr); }
 +    }
 +
-+    .of-fld { min-width: 0; } .of-input { width: 100%; min-width: 0; box-sizing: border-box; }
++    .of-fld { min-width: 0; } .of-input { width: 100%; min-width: 0; }
++    @media (max-width: 900px) { .of-input { box-sizing: border-box; } }
 +    @media (max-width: 900px) {
 +      /* the bottom bars (simulator, field tools) are wider than a phone: keep them on the screen and let a finger slide them */
 +      #bottomstack { width: max-content; max-width: calc(100vw - 8px); }
@@ -82,7 +83,7 @@ index dd7dde5..07dd9c5 100644
 +    }
 +
 +    /* Narrow portrait phone: the status bar has to squeeze into ~360-410 px (it is ~480 px wide at full size). */
-+    @media (max-width: 560px) {
++    @media (max-width: 900px) {
 +      #statusbar { gap: 4px; padding: 0 6px; font-size: 13px; }
 +      #statusbar button { padding: 2px 4px; gap: 4px; }
 +      #sb-pause { display: none; }
@@ -93,7 +94,7 @@ index dd7dde5..07dd9c5 100644
 +      #sb-fs { width: 30px; height: 30px; flex: none; }
 +      #sb-diag { gap: 12px; padding: 0 8px 0 8px; overflow: hidden; }
 +    }
-+    @media (max-width: 460px) { #sb-roletext { display: none; } }
++    @media (max-width: 620px) { #sb-roletext { display: none; } }
 +    /* Dialogs (confirm, tracks, flags ...): within the screen, scroll when taller. */
 +    @media (max-width: 760px), (max-height: 640px) {
 +      .dlg-card { min-width: 0; width: calc(100vw - 16px); max-width: 380px; box-sizing: border-box;
@@ -183,8 +184,9 @@ index dd7dde5..07dd9c5 100644
 +    /* Pop-up messages (alarms, hints, toasts) are centred with left:50%, which left them only half a screen wide to
 +       fit in: tall, narrow boxes on a phone. Let them size to their text, up to the screen width. */
 +    #toast, #hwmsg, #headland-hud, #maptap-hint, #reverse-badge, #maptap-cancel, #draw-toolbar {
-+      width: max-content; max-width: calc(100vw - 16px - var(--sal) - var(--sar)); box-sizing: border-box; }
++      width: max-content; max-width: calc(100vw - 16px - var(--sal) - var(--sar)); }
 +    #toast, #hwmsg { max-width: min(560px, calc(100vw - 16px - var(--sal) - var(--sar))); }
++    @media (max-width: 900px) { #toast, #hwmsg { box-sizing: border-box; } }
 +    #draw-toolbar { flex-wrap: wrap; justify-content: center; }
 +    /* Compact phone UI: the menus, bars and map pad were sized for a tablet and covered most of a phone's map. */
 +    @media (max-width: 560px) {
@@ -291,10 +293,41 @@ index dd7dde5..07dd9c5 100644
 +      #onscreenbtns { left: calc(60px + var(--sal)); gap: 6px; }
 +      .osb-btn { width: 46px; height: 46px; }
 +    }
++
++    /* Audit round 3 */
++    @media (min-width: 561px) and (max-width: 900px) { .sb-spacer { flex: 1 1 0; } }
++    @media (pointer: coarse) and (max-width: 900px) { body.fs-on #sb-role { margin-left: 0; } }
++    #lb, #reverse-badge, #sb-pause { font-variant-emoji: text; }
++    @media (max-width: 900px), (max-height: 640px) {
++      html .as-shell { padding: 0; }
++      .as-statusbar { position: sticky; bottom: 0; background: var(--panel); z-index: 1; }
++      #rj-list, #agu-list, #agd-list, #it-list, #rp-list, .fj-list { max-height: 34vh !important; overflow-y: auto; }
++      #vs-tree, #br-status { overflow-wrap: anywhere; }
++      #draw-toolbar { pointer-events: none; }
++      #draw-toolbar button { pointer-events: auto; }
++      #leftnav, #rightnav { max-height: calc(100dvh - 56px - var(--sat) - var(--sab) - 8px); }
++    }
++    @media (max-width: 760px), (max-height: 640px) { html .ln-wide { width: 360px; } }
++    @media (max-width: 900px) and (max-height: 640px) {
++      #bottomstack { left: calc(50% + (var(--lnoff) - 56px) / 2); max-width: calc(100vw - var(--lnoff) - 64px); }
++      #simbar, #bottomnav .bn-bar { max-width: calc(100vw - var(--lnoff) - 64px); }
++    }
++    @media (max-height: 480px) {
++      .bn-flyout { box-sizing: border-box; max-height: calc(100dvh - 160px - var(--sat) - var(--sab)); overflow-y: auto; }
++      body:has(#simbar.open) #rollgauge { display: none; }
++      body:has(#simbar.open) #onscreenbtns { bottom: calc(var(--stackh, 60px) + 8px + var(--sab)); }
++    }
++    @media (max-width: 420px) {
++      #sectionbar .sec-row { flex-wrap: wrap; }
++      #sectionbar .sec-btn { flex: 1 0 11%; max-width: none; height: 34px; }
++    }
++    @media (max-width: 560px), (max-height: 480px) {
++      .ln-segbtn, .hk-key, .sw-b, .rp-tab, .hub-cbtn, .rc-invert, .cfg-typebtn, .nte-test, .nte-save { min-height: 36px; }
++    }
    </style>
  </head>
  <body>
-@@ -2821,5 +3099,53 @@
+@@ -2821,5 +3132,53 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>
@@ -304,17 +337,17 @@ index dd7dde5..07dd9c5 100644
 +     movement); a slide becomes a pointercancel and nothing fires. (2) Android draws the black arrows
 +     in "Full"/"LEFT"/"RIGHT" as colour emoji; force the plain text form. */
 +  (function () {
-+    var SEL = '.ln-panel, #leftnav, #rightnav, #simbar, #sectionbar, #bottomnav .bn-bar',
-+        BTN = 'button, [data-cmd], .fj-frow, .fj-jrow, .cfg-tab', down = null, replay = false;
++    var SEL = '.ln-panel, .dlg-card, .bn-flyout, #leftnav, #rightnav, #simbar, #sectionbar, #bottomnav .bn-bar',
++        BTN = 'button, [data-cmd], .fj-frow, .fj-jrow, .cfg-tab, .dp-row, .trk-row, .flg-row, .bm-row, .fb-trkrow, .fb-hlrow, .nio-ntrow', downs = {}, replay = false;
 +    document.addEventListener('pointerdown', function (e) {
 +      if (replay || e.pointerType === 'mouse' || !e.target.closest) return;
 +      if (!e.target.closest(SEL) || !e.target.closest(BTN) || e.target.closest('input, select, textarea')) return;
-+      down = { x: e.clientX, y: e.clientY, id: e.pointerId, t: e.target };
++      downs[e.pointerId] = { x: e.clientX, y: e.clientY, t: e.target };
 +      e.stopImmediatePropagation(); e.stopPropagation();
 +    }, true);
 +    document.addEventListener('pointerup', function (e) {
-+      if (!down || e.pointerId !== down.id) return;
-+      var d = down; down = null;
++      var d = downs[e.pointerId]; if (!d) return;
++      delete downs[e.pointerId];
 +      if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10) return;
 +      replay = true;
 +      try {
@@ -323,7 +356,7 @@ index dd7dde5..07dd9c5 100644
 +          clientX: e.clientX, clientY: e.clientY }));
 +      } finally { replay = false; }
 +    }, true);
-+    document.addEventListener('pointercancel', function (e) { if (down && e.pointerId === down.id) down = null; }, true);
++    document.addEventListener('pointercancel', function (e) { delete downs[e.pointerId]; }, true);
 +    function plain(el) {
 +      var t = el.textContent, f = t.replace(/([\u25B6\u25C0])\uFE0E?/g, '$1\uFE0E');
 +      if (f !== t) el.textContent = f;
