@@ -1,5 +1,5 @@
 diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..2850e2d 100644
+index dd7dde5..5580637 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..2850e2d 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,163 @@
+@@ -1158,6 +1175,190 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -138,14 +138,13 @@ index dd7dde5..2850e2d 100644
 +      #simbar .sim-slider { flex: 1 1 60px; width: auto; min-width: 56px; }
 +      #simbar .sim-btn, #simbar .sim-toggle { min-width: 36px; padding: 0 6px; }
 +      body:has(#simbar.open) #clock { display: none; }
-+      body:has(#simbar.open) #toast { bottom: calc(150px + var(--sab, 0px)); }
++      body:has(#simbar.open) #toast { bottom: calc(var(--stackh, 90px) + 8px + var(--sab, 0px)); }
 +    }
 +    @media (max-width: 560px) {
 +      #simbar > .sim-sep:nth-child(11) { display: block; flex: 0 0 100%; width: 100%; height: 0; margin: 0; background: none; }
 +      #simbar { gap: 3px; padding: 5px 6px; }
 +      #simbar .sim-val { width: 40px; }
 +      /* the camera pad and roll gauge sit above the (now two-row) simulator bar instead of under it */
-+      body:has(#simbar.open) #lowerright { bottom: calc(150px + var(--sab)); }
 +    }
 +    /* Auto Steer Configuration status line: keep the Full/Less button whole (and its arrow a plain glyph, not an emoji) */
 +    .as-toggle, .cfg-act { font-variant-emoji: text; }
@@ -187,10 +186,38 @@ index dd7dde5..2850e2d 100644
 +      width: max-content; max-width: calc(100vw - 16px - var(--sal) - var(--sar)); box-sizing: border-box; }
 +    #toast, #hwmsg { max-width: min(560px, calc(100vw - 16px - var(--sal) - var(--sar))); }
 +    #draw-toolbar { flex-wrap: wrap; justify-content: center; }
++    /* Compact phone UI: the menus, bars and map pad were sized for a tablet and covered most of a phone's map. */
++    @media (max-width: 560px) {
++      :root { --lnoff: 52px; }
++      #leftnav { gap: 4px; padding: 5px 5px 5px 0; }
++      .ln-btn { width: 40px; height: 40px; padding: 5px; border-radius: 7px; }
++      #rightnav { gap: 4px; padding: 5px; }
++      .rn-btn { width: 40px; height: 40px; padding: 5px; border-radius: 7px; }
++      #lowerright { right: calc(50px + var(--sar)); transform: scale(0.7); transform-origin: bottom right; }
++    }
++    @media (max-width: 560px), (max-height: 480px) {
++      #bottomnav .bn-bar { gap: 4px; padding: 5px; }
++      #bottomnav .bn-btn { width: 42px; height: 42px; padding: 5px; }
++      #sectionbar { padding: 5px; gap: 3px; }
++      #sectionbar { max-width: calc(100vw - 8px); box-sizing: border-box; }
++      #sectionbar .sec-row { width: 100%; }
++      #sectionbar .sec-btn { flex: 1 1 0; min-width: 22px; width: auto; max-width: 40px; height: 30px; font-size: 11px; }
++      #simbar .sim-btn, #simbar .sim-toggle { height: 34px; font-size: 12px; }
++      #simbar { padding: 4px 5px; }
++      #sim-launch { height: 28px; padding: 0 12px; font-size: 12px; }
++      #clock { font-size: 14px; }
++    }
++    @media (max-height: 480px) {
++      #lowerright { transform: scale(0.6); }
++    }
++    /* the roll gauge + camera pad ride just above whatever bars are open at the bottom (--stackh is set by a script) */
++    @media (max-width: 560px), (max-height: 480px) {
++      #lowerright { bottom: calc(var(--stackh, 0px) + 8px + var(--sab)); }
++    }
    </style>
  </head>
  <body>
-@@ -2821,5 +2995,47 @@
+@@ -2821,5 +3022,53 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>
@@ -233,6 +260,12 @@ index dd7dde5..2850e2d 100644
 +          .observe(els[i], { childList: true, characterData: true, subtree: true });
 +      }
 +    }
++    try {
++      var stack = document.getElementById('bottomstack');
++      if (stack && window.ResizeObserver) new ResizeObserver(function () {
++        document.documentElement.style.setProperty('--stackh', Math.ceil(stack.getBoundingClientRect().height) + 'px');
++      }).observe(stack);
++    } catch (_) {}
 +    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
 +  })();
 +  </script>
