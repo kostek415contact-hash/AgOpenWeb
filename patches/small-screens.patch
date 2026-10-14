@@ -1,5 +1,5 @@
 diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..e60e608 100644
+index dd7dde5..2850e2d 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..e60e608 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,156 @@
+@@ -1158,6 +1175,163 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -138,6 +138,7 @@ index dd7dde5..e60e608 100644
 +      #simbar .sim-slider { flex: 1 1 60px; width: auto; min-width: 56px; }
 +      #simbar .sim-btn, #simbar .sim-toggle { min-width: 36px; padding: 0 6px; }
 +      body:has(#simbar.open) #clock { display: none; }
++      body:has(#simbar.open) #toast { bottom: calc(150px + var(--sab, 0px)); }
 +    }
 +    @media (max-width: 560px) {
 +      #simbar > .sim-sep:nth-child(11) { display: block; flex: 0 0 100%; width: 100%; height: 0; margin: 0; background: none; }
@@ -180,23 +181,30 @@ index dd7dde5..e60e608 100644
 +      .fj-creation .cfg-label { grid-column: 1 / -1; }
 +      .fj-creation .cfg-act { margin-bottom: 0; }
 +    }
++    /* Pop-up messages (alarms, hints, toasts) are centred with left:50%, which left them only half a screen wide to
++       fit in: tall, narrow boxes on a phone. Let them size to their text, up to the screen width. */
++    #toast, #hwmsg, #headland-hud, #maptap-hint, #reverse-badge, #maptap-cancel, #draw-toolbar {
++      width: max-content; max-width: calc(100vw - 16px - var(--sal) - var(--sar)); box-sizing: border-box; }
++    #toast, #hwmsg { max-width: min(560px, calc(100vw - 16px - var(--sal) - var(--sar))); }
++    #draw-toolbar { flex-wrap: wrap; justify-content: center; }
    </style>
  </head>
  <body>
-@@ -2821,5 +2988,46 @@
+@@ -2821,5 +2995,47 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>
 +  <script>
-+  /* Phone touch fixes. (1) The simulator / field-tool bars fire on pointerdown, so a finger that starts a
-+     slide on a button used to press it. On touch, hold the press back and only deliver it as a tap (no
++  /* Phone touch fixes. (1) Panels, the side menus and the simulator / field-tool bars fire on pointerdown, so a
++     finger that starts a scroll or a slide on a button used to press it. On touch, hold the press back and only deliver it as a tap (no
 +     movement); a slide becomes a pointercancel and nothing fires. (2) Android draws the black arrows
 +     in "Full"/"LEFT"/"RIGHT" as colour emoji; force the plain text form. */
 +  (function () {
-+    var SEL = '#simbar, #bottomnav .bn-bar', down = null, replay = false;
++    var SEL = '.ln-panel, #leftnav, #rightnav, #simbar, #sectionbar, #bottomnav .bn-bar',
++        BTN = 'button, [data-cmd], .fj-frow, .fj-jrow, .cfg-tab', down = null, replay = false;
 +    document.addEventListener('pointerdown', function (e) {
 +      if (replay || e.pointerType === 'mouse' || !e.target.closest) return;
-+      if (!e.target.closest(SEL) || e.target.closest('input')) return;
++      if (!e.target.closest(SEL) || !e.target.closest(BTN) || e.target.closest('input, select, textarea')) return;
 +      down = { x: e.clientX, y: e.clientY, id: e.pointerId, t: e.target };
 +      e.stopImmediatePropagation(); e.stopPropagation();
 +    }, true);
