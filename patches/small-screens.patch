@@ -1,5 +1,5 @@
 diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..1d0aa95 100644
+index dd7dde5..ad3874e 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..1d0aa95 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,106 @@
+@@ -1158,6 +1175,139 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -130,6 +130,86 @@ index dd7dde5..1d0aa95 100644
 +      .rn-btn { width: 42px; height: 42px; padding: 5px; }
 +      #lowerright { right: calc(60px + var(--sar)); bottom: calc(60px + var(--sab)); transform: scale(0.8); transform-origin: bottom right; }
 +    }
++    /* Simulator bar on a phone: wrap into rows instead of a sideways scroll, so every control is visible
++       and a finger never has to drag across the buttons. */
++    @media (max-width: 900px) {
++      #simbar { flex-wrap: wrap; justify-content: center; row-gap: 4px; overflow: visible; touch-action: manipulation; }
++      #simbar > .sim-sep { display: none; }
++      #simbar .sim-slider { flex: 1 1 60px; width: auto; min-width: 56px; }
++      #simbar .sim-btn, #simbar .sim-toggle { min-width: 36px; padding: 0 6px; }
++      body:has(#simbar.open) #clock { display: none; }
++    }
++    @media (max-width: 560px) {
++      #simbar > .sim-sep:nth-child(11) { display: block; flex: 0 0 100%; width: 100%; height: 0; margin: 0; background: none; }
++      #simbar { gap: 3px; padding: 5px 6px; }
++      #simbar .sim-val { width: 40px; }
++      /* the camera pad and roll gauge sit above the (now two-row) simulator bar instead of under it */
++      body:has(#simbar.open) #lowerright { bottom: calc(150px + var(--sab)); }
++    }
++    /* Auto Steer Configuration status line: keep the Full/Less button whole (and its arrow a plain glyph, not an emoji) */
++    .as-toggle, .cfg-act { font-variant-emoji: text; }
++    .as-toggle { white-space: nowrap; flex: 0 0 auto; }
++    @media (max-width: 760px), (max-height: 640px) {
++      .as-statusbar { flex-wrap: wrap; gap: 6px 12px; padding: 8px 10px; }
++    }
++    /* GPS detail card: it hangs under the fix readout at the right end of the bar, so on a phone it ran off the screen.
++       Pin it to the right edge of the screen and let it scroll if the screen is short. */
++    @media (max-width: 900px), (max-height: 640px) {
++      #sb-gpscard { position: fixed; left: auto; right: calc(6px + var(--sar)); top: calc(var(--sat) + 52px);
++        min-width: 0; width: max-content; max-width: calc(100vw - 12px - var(--sar)); box-sizing: border-box;
++        max-height: calc(100vh - 60px - var(--sat) - var(--sab)); max-height: calc(100dvh - 60px - var(--sat) - var(--sab));
++        overflow-y: auto; }
++    }
++    #sb-fix, #sb-age, #sb-rot { white-space: nowrap; }
++    @media (max-width: 560px) { #statusbar #sb-pause { display: none; } }
++    @media (max-width: 380px) { #statusbar #sb-age { display: none; } }
    </style>
  </head>
  <body>
+@@ -2821,5 +2971,46 @@
+   <script src="/transport.js"></script>
+   <script src="/i18n.js"></script>
+   <script src="/app.js"></script>
++  <script>
++  /* Phone touch fixes. (1) The simulator / field-tool bars fire on pointerdown, so a finger that starts a
++     slide on a button used to press it. On touch, hold the press back and only deliver it as a tap (no
++     movement); a slide becomes a pointercancel and nothing fires. (2) Android draws the black arrows
++     in "Full"/"LEFT"/"RIGHT" as colour emoji; force the plain text form. */
++  (function () {
++    var SEL = '#simbar, #bottomnav .bn-bar', down = null, replay = false;
++    document.addEventListener('pointerdown', function (e) {
++      if (replay || e.pointerType === 'mouse' || !e.target.closest) return;
++      if (!e.target.closest(SEL) || e.target.closest('input')) return;
++      down = { x: e.clientX, y: e.clientY, id: e.pointerId, t: e.target };
++      e.stopImmediatePropagation(); e.stopPropagation();
++    }, true);
++    document.addEventListener('pointerup', function (e) {
++      if (!down || e.pointerId !== down.id) return;
++      var d = down; down = null;
++      if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10) return;
++      replay = true;
++      try {
++        d.t.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, composed: true,
++          pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: true, button: 0, buttons: 1,
++          clientX: e.clientX, clientY: e.clientY }));
++      } finally { replay = false; }
++    }, true);
++    document.addEventListener('pointercancel', function (e) { if (down && e.pointerId === down.id) down = null; }, true);
++    function plain(el) {
++      var t = el.textContent, f = t.replace(/([\u25B6\u25C0])\uFE0E?/g, '$1\uFE0E');
++      if (f !== t) el.textContent = f;
++    }
++    function watch() {
++      var els = document.querySelectorAll('#as-expand, .cfg-act');
++      for (var i = 0; i < els.length; i++) {
++        if (!/[\u25B6\u25C0]/.test(els[i].textContent)) continue;
++        plain(els[i]);
++        new MutationObserver(function (m) { plain(m[0].target.nodeType === 1 ? m[0].target : m[0].target.parentNode); })
++          .observe(els[i], { childList: true, characterData: true, subtree: true });
++      }
++    }
++    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
++  })();
++  </script>
+ </body>
+ </html>
