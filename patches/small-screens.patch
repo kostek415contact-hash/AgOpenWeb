@@ -1,5 +1,5 @@
 diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..5580637 100644
+index dd7dde5..55dee2f 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..5580637 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,190 @@
+@@ -1158,6 +1175,210 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -214,10 +214,30 @@ index dd7dde5..5580637 100644
 +    @media (max-width: 560px), (max-height: 480px) {
 +      #lowerright { bottom: calc(var(--stackh, 0px) + 8px + var(--sab)); }
 +    }
++    /* Compact phone menus (File, Screen & Alerts, Tools, Field Operations ...): smaller buttons and tighter spacing so a
++       panel covers less of the map and needs less scrolling. */
++    @media (max-width: 560px), (max-height: 480px) {
++      html .ln-panel { padding: 8px; border-radius: 8px; }
++      .ln-hdr { margin-bottom: 6px; }
++      .ln-hdr-title { font-size: 14px; }
++      .ln-x { width: 30px; height: 30px; }
++      .cfg-label { font-size: 11px; margin: 6px 0 4px; }
++      .fo-grid, .sa-grid { gap: 4px; }
++      .fo-btn { height: 34px; font-size: 12px; padding: 0 8px; gap: 6px; }
++      .fo-ic, .sa-ic { width: 18px; height: 18px; }
++      .sa-tgl, .sa-act { height: 34px; font-size: 12px; padding: 0 8px; }
++      .sa-grid .cfg-num { height: 34px; }
++      .cfg-act { padding: 6px 8px; font-size: 12px; }
++      .cfg-tgl, .cfg-num { height: 30px; }
++      .lang-btn { height: 32px; }
++      .lang-list { max-height: 50vh; }
++      .cfg-grid { gap: 5px 10px; }
++      .fo-pill { margin-top: 8px; padding: 5px 10px; font-size: 12px; }
++    }
    </style>
  </head>
  <body>
-@@ -2821,5 +3022,53 @@
+@@ -2821,5 +3042,53 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>
