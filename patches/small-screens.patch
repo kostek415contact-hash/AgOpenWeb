@@ -1,5 +1,5 @@
 diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..1e7b200 100644
+index dd7dde5..859c3f9 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..1e7b200 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,224 @@
+@@ -1158,6 +1175,239 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -248,10 +248,25 @@ index dd7dde5..1e7b200 100644
 +      #statusbar #sb-speed, #statusbar #sb-hdg { font-size: 17px; }
 +      #statusbar { font-size: 12px; }
 +    }
++    /* Same 85% phone scale for the dialogs; the diagnostic chart cards must fit next to the left menu. */
++    @media (max-width: 560px), (max-height: 480px) {
++      .dlg-card { zoom: var(--uiz); width: calc((100vw - 16px) / var(--uiz)); margin-top: calc(60px / var(--uiz));
++        max-height: calc((100vh - 68px - var(--sat) - var(--sab)) / var(--uiz));
++        max-height: calc((100dvh - 68px - var(--sat) - var(--sab)) / var(--uiz)); }
++      .chart-card { left: calc(var(--lnoff) + var(--sal)); width: min(408px, calc(100vw - var(--lnoff) - var(--sal) - var(--sar) - 8px)); }
++    }
++    @media (max-height: 480px) {
++      .dlg-card { margin-top: 8px; max-height: calc((100dvh - 16px) / var(--uiz)); }
++    }
++    @media (max-width: 560px) {
++      .wz-footer { padding: 8px 10px; gap: 6px; flex-wrap: wrap; }
++      .wz-btn { padding: 9px 14px; font-size: 13px; }
++      .wz-header { padding: 8px 10px; }
++    }
    </style>
  </head>
  <body>
-@@ -2821,5 +3056,53 @@
+@@ -2821,5 +3071,53 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>
