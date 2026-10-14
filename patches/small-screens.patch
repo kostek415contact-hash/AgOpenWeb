@@ -1,5 +1,5 @@
 diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..859c3f9 100644
+index dd7dde5..30731ed 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..859c3f9 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,239 @@
+@@ -1158,6 +1175,250 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -263,10 +263,21 @@ index dd7dde5..859c3f9 100644
 +      .wz-btn { padding: 9px 14px; font-size: 13px; }
 +      .wz-header { padding: 8px 10px; }
 +    }
++    /* ...but keep every control big enough for a finger (the panels are drawn at 85%, so these are CSS sizes before the scale) */
++    @media (max-width: 560px), (max-height: 480px) {
++      .ln-x, .ln-back, .nt-x, .nt-back, .sd-x, .sd-back, .sw-x, .sw-back, .as-x, #as-close { min-width: 38px; min-height: 38px; }
++      .cfg-act, .as-toggle, .log-filt, .cfg-tab { min-height: 40px; }
++      .fo-btn, .sa-tgl, .sa-act, .lang-btn { min-height: 40px; }
++      .cfg-tgl, .cfg-num, .cfg-sel, .of-input, .fj-tx, .nio-panel input:not([type=checkbox]):not([type=radio]), .ln-panel select { min-height: 38px; }
++      .ln-panel input[type=checkbox], .ln-panel input[type=radio] { width: 22px; height: 22px; }
++      .fo-btn, .sa-tgl, .sa-act, .lang-btn, .cfg-tgl, .cfg-num { height: auto; }
++      .ln-panel input[type=range] { height: 28px; }
++      .nio-more { min-width: 38px; min-height: 38px; }
++    }
    </style>
  </head>
  <body>
-@@ -2821,5 +3071,53 @@
+@@ -2821,5 +3082,53 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>
