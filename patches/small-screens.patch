@@ -1,5 +1,5 @@
 diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..f09691f 100644
+index dd7dde5..07dd9c5 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 @@ -331,6 +331,23 @@
@@ -26,7 +26,7 @@ index dd7dde5..f09691f 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,261 @@
+@@ -1158,6 +1175,267 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -285,10 +285,16 @@ index dd7dde5..f09691f 100644
 +    @media (min-width: 640px) and (max-height: 640px) {
 +      .cfg-diaggrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 +    }
++    /* Section grids in Tool Configuration and the on-screen U-turn buttons: finger-sized fields, smaller map buttons. */
++    @media (max-width: 560px), (max-height: 480px) {
++      .tc-dyngrid input, .tc-pingrid select { min-height: 38px; }
++      #onscreenbtns { left: calc(60px + var(--sal)); gap: 6px; }
++      .osb-btn { width: 46px; height: 46px; }
++    }
    </style>
  </head>
  <body>
-@@ -2821,5 +3093,53 @@
+@@ -2821,5 +3099,53 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>
