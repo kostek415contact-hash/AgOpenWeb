@@ -1,6 +1,6 @@
 --- a/Shared/AgOpenWeb.Services/UdpCommunicationService.cs
 +++ b/Shared/AgOpenWeb.Services/UdpCommunicationService.cs
-@@ -60,6 +60,23 @@
+@@ -76,6 +76,23 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
      private const int ModuleTimeoutSeconds = 5;
      private const int DiscoveryRefreshSeconds = 30;
  
@@ -24,7 +24,7 @@
      // Module connection tracking - Hello responses (2 second timeout)
      private DateTime _lastHelloFromAutoSteer = DateTime.MinValue;
      private DateTime _lastHelloFromMachine = DateTime.MinValue;
-@@ -134,6 +151,7 @@
+@@ -181,6 +198,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
              // Discover broadcast endpoints on all network interfaces
              _discoveryEndpoints = GetBroadcastEndpoints();
              _lockedEndpoint = null;
@@ -32,7 +32,7 @@
              _lastDiscoveryRefresh = DateTime.UtcNow;
  
              IsConnected = true;
-@@ -189,7 +207,11 @@
+@@ -240,7 +258,11 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
              _lockedEndpoint = null;
          }
  
@@ -45,8 +45,8 @@
          {
              // Connected: send to locked endpoint + localhost only
              SendPacket(data, _lockedEndpoint);
-@@ -211,6 +233,59 @@
-         }
+@@ -274,6 +296,59 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+         SendPacket(data, _agIoGpsLoopbackEndpoint);
      }
  
 +    /// <summary>
@@ -105,7 +105,7 @@
      private void SendPacket(byte[] data, IPEndPoint endpoint)
      {
          try
-@@ -491,6 +566,7 @@
+@@ -564,6 +639,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
                  _lastDataFromAutoSteer = now;
                  _autoSteerIp = remoteIp;
                  _lastModuleResponse = DateTime.UtcNow;
@@ -113,7 +113,7 @@
                  break;
  
              // Machine PGNs (receive-only, only Hello matters)
-@@ -601,18 +677,25 @@
+@@ -713,18 +789,25 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
      private void ResetDiscovery()
      {
          _lockedEndpoint = null;
