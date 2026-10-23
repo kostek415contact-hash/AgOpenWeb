@@ -240,7 +240,7 @@ index b245aec..f043ba1 100644
 +       (the position and size limits are divided by the same factor so the panel still fits the screen). */
 +    @media (max-width: 560px), (max-height: 480px) {
 +      :root { --uiz: 0.85; }
-+      html .ln-panel { zoom: var(--uiz);
++      html .ln-panel { zoom: calc(var(--ui-zoom) * var(--uiz)) !important;
 +        left: calc((var(--lnoff) + var(--sal)) / var(--uiz)); top: calc((56px + var(--sat)) / var(--uiz));
 +        max-width: calc(((100 * var(--vw)) - var(--lnoff) - var(--sal) - var(--sar) - 8px) / var(--uiz));
 +        max-height: calc(((100 * var(--vh)) - 56px - var(--sat) - var(--sab) - 8px) / var(--uiz));
