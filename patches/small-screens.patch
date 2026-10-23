@@ -1,15 +1,15 @@
-diff --git a/a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-index dd7dde5..aba202c 100644
+diff --git a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
+index b245aec..f043ba1 100644
 --- a/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
 +++ b/Shared/AgOpenWeb.RemoteServer/wwwroot/index.html
-@@ -331,6 +331,23 @@
-       max-width: calc(100vw - 96px); color: var(--text);
+@@ -374,6 +374,23 @@
+       color: var(--text);
        background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px;
        box-shadow: 0 8px 28px rgba(0,0,0,0.5); z-index: 31; }
 +    /* Short screens (a phone held sideways is only ~400 px tall): the left bar must never run off the bottom. It never
 +       grows taller than the space under the status bar, scrolls with a finger when it still does not fit, and its
 +       buttons get smaller as the screen gets shorter so that all of them are visible at once on a typical phone. */
-+    #leftnav { max-height: calc(100vh - 56px - var(--sat) - var(--sab) - 8px); overflow-y: auto; overscroll-behavior: contain;
++    #leftnav { max-height: calc(100 * var(--vh) - 56px - var(--sat) - var(--sab) - 8px); overflow-y: auto; overscroll-behavior: contain;
 +      scrollbar-width: none; -webkit-overflow-scrolling: touch; touch-action: pan-y; box-sizing: border-box; }
 +    #leftnav::-webkit-scrollbar { display: none; }
 +    #leftnav .ln-btn { flex: 0 0 auto; }
@@ -26,7 +26,7 @@ index dd7dde5..aba202c 100644
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
      /* Without min-width:0 a column's content (e.g. the dynamic section-widths grid)
-@@ -1158,6 +1175,300 @@
+@@ -1234,6 +1251,300 @@
      .bp-stat { display: flex; flex-direction: column; align-items: center; justify-content: center; }
      .bp-statlbl { font-size: 12px; color: var(--text-dim); }
      .bp-statval { font-size: 18px; font-weight: 700; }
@@ -327,7 +327,7 @@ index dd7dde5..aba202c 100644
    </style>
  </head>
  <body>
-@@ -2821,5 +3132,53 @@
+@@ -3012,5 +3323,53 @@
    <script src="/transport.js"></script>
    <script src="/i18n.js"></script>
    <script src="/app.js"></script>

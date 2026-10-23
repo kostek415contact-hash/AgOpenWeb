@@ -1,8 +1,10 @@
+diff --git a/Shared/AgOpenWeb.Services/UdpCommunicationService.cs b/Shared/AgOpenWeb.Services/UdpCommunicationService.cs
+index 07e2a87..ba07a01 100644
 --- a/Shared/AgOpenWeb.Services/UdpCommunicationService.cs
 +++ b/Shared/AgOpenWeb.Services/UdpCommunicationService.cs
-@@ -76,6 +76,23 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+@@ -79,6 +79,23 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+     private static readonly IPEndPoint _agIoGpsLoopbackEndpoint = new(_loopbackTarget, 15555);
      private const int ModuleTimeoutSeconds = 5;
-     private const int DiscoveryRefreshSeconds = 30;
  
 +    // Unicast to modules. Once a module has answered, frames go to ITS address instead of the
 +    // subnet broadcast (x.y.z.255). Wi-Fi access points - notably phone hotspots - hold broadcast
@@ -24,15 +26,15 @@
      // Module connection tracking - Hello responses (2 second timeout)
      private DateTime _lastHelloFromAutoSteer = DateTime.MinValue;
      private DateTime _lastHelloFromMachine = DateTime.MinValue;
-@@ -181,6 +198,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+@@ -186,6 +203,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
              // Discover broadcast endpoints on all network interfaces
              _discoveryEndpoints = GetBroadcastEndpoints();
              _lockedEndpoint = null;
 +            _moduleTargets = Array.Empty<ModuleTarget>();
-             _lastDiscoveryRefresh = DateTime.UtcNow;
  
              IsConnected = true;
-@@ -240,7 +258,11 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+ 
+@@ -252,7 +270,11 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
              _lockedEndpoint = null;
          }
  
@@ -45,7 +47,7 @@
          {
              // Connected: send to locked endpoint + localhost only
              SendPacket(data, _lockedEndpoint);
-@@ -274,6 +296,59 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+@@ -286,6 +308,59 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
          SendPacket(data, _agIoGpsLoopbackEndpoint);
      }
  
@@ -105,7 +107,7 @@
      private void SendPacket(byte[] data, IPEndPoint endpoint)
      {
          try
-@@ -564,6 +639,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+@@ -576,6 +651,7 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
                  _lastDataFromAutoSteer = now;
                  _autoSteerIp = remoteIp;
                  _lastModuleResponse = DateTime.UtcNow;
@@ -113,13 +115,12 @@
                  break;
  
              // Machine PGNs (receive-only, only Hello matters)
-@@ -713,18 +789,25 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
+@@ -725,17 +801,24 @@ public class UdpCommunicationService : IUdpCommunicationService, IDisposable
      private void ResetDiscovery()
      {
          _lockedEndpoint = null;
 +        _moduleTargets = Array.Empty<ModuleTarget>();
          _discoveryEndpoints = GetBroadcastEndpoints();
-         _lastDiscoveryRefresh = DateTime.UtcNow;
      }
  
      /// <summary>
