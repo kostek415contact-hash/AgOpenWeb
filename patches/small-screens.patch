@@ -16,12 +16,12 @@ index b245aec..f043ba1 100644
 +    @media (max-height: 640px) {
 +      #leftnav { gap: 5px; padding: 6px 6px 6px 0; }
 +      .ln-btn { width: 48px; height: 48px; padding: 6px; }
-+      .ln-panel { left: calc(64px + var(--sal)); max-width: calc(100vw - 80px); }
++      .ln-panel { left: calc(64px + var(--sal)); max-width: calc((100 * var(--vw)) - 80px); }
 +    }
 +    @media (max-height: 480px) {
 +      #leftnav { gap: 4px; padding: 5px 5px 5px 0; }
 +      .ln-btn { width: 38px; height: 38px; padding: 5px; }
-+      .ln-panel { left: calc(52px + var(--sal)); max-width: calc(100vw - 68px); }
++      .ln-panel { left: calc(52px + var(--sal)); max-width: calc((100 * var(--vw)) - 68px); }
 +    }
      /* Lay tall tabs out across the width so they fit a 1200x700 tablet without scroll. */
      .cfg-cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px 22px; align-items: start; }
@@ -40,9 +40,9 @@ index b245aec..f043ba1 100644
 +    @media (max-height: 480px) { :root { --lnoff: 52px; } }
 +    @media (max-width: 760px), (max-height: 640px) {
 +      html .ln-panel { left: calc(var(--lnoff) + var(--sal)); box-sizing: border-box; min-width: 0;
-+        max-width: calc(100vw - var(--lnoff) - var(--sal) - var(--sar) - 8px);
-+        max-height: calc(100vh - 56px - var(--sat) - var(--sab) - 8px);
-+        max-height: calc(100dvh - 56px - var(--sat) - var(--sab) - 8px);
++        max-width: calc((100 * var(--vw)) - var(--lnoff) - var(--sal) - var(--sar) - 8px);
++        max-height: calc((100 * var(--vh)) - 56px - var(--sat) - var(--sab) - 8px);
++        max-height: calc((100dvh / var(--ui-zoom)) - 56px - var(--sat) - var(--sab) - 8px);
 +        overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 10px; }
 +      html .ln-wide, html .fm-full { width: auto; }
 +      html .fm-full { height: auto; }
@@ -59,16 +59,16 @@ index b245aec..f043ba1 100644
 +    @media (max-width: 900px) { .of-input { box-sizing: border-box; } }
 +    @media (max-width: 900px) {
 +      /* the bottom bars (simulator, field tools) are wider than a phone: keep them on the screen and let a finger slide them */
-+      #bottomstack { width: max-content; max-width: calc(100vw - 8px); }
++      #bottomstack { width: max-content; max-width: calc((100 * var(--vw)) - 8px); }
 +      #bottomnav { max-width: 100%; }
-+      #simbar, #bottomnav .bn-bar { max-width: calc(100vw - 8px); overflow-x: auto; scrollbar-width: none;
++      #simbar, #bottomnav .bn-bar { max-width: calc((100 * var(--vw)) - 8px); overflow-x: auto; scrollbar-width: none;
 +        -webkit-overflow-scrolling: touch; touch-action: pan-x; }
 +      #simbar::-webkit-scrollbar, #bottomnav .bn-bar::-webkit-scrollbar { display: none; }
 +      #simbar > *, #bottomnav .bn-btn { flex-shrink: 0; }
 +    }
 +    @media (max-width: 900px) and (max-height: 640px) {
-+      #bottomstack { left: calc(50% + var(--lnoff) / 2); max-width: calc(100vw - var(--lnoff) - 12px); }
-+      #simbar, #bottomnav .bn-bar { max-width: calc(100vw - var(--lnoff) - 12px); }
++      #bottomstack { left: calc(50% + var(--lnoff) / 2); max-width: calc((100 * var(--vw)) - var(--lnoff) - 12px); }
++      #simbar, #bottomnav .bn-bar { max-width: calc((100 * var(--vw)) - var(--lnoff) - 12px); }
 +    }
 +
 +    @media (max-width: 760px), (max-height: 640px) {
@@ -97,12 +97,12 @@ index b245aec..f043ba1 100644
 +    @media (max-width: 620px) { #sb-roletext { display: none; } }
 +    /* Dialogs (confirm, tracks, flags ...): within the screen, scroll when taller. */
 +    @media (max-width: 760px), (max-height: 640px) {
-+      .dlg-card { min-width: 0; width: calc(100vw - 16px); max-width: 380px; box-sizing: border-box;
-+        max-height: calc(100vh - 68px - var(--sat) - var(--sab)); max-height: calc(100dvh - 68px - var(--sat) - var(--sab));
++      .dlg-card { min-width: 0; width: calc((100 * var(--vw)) - 16px); max-width: 380px; box-sizing: border-box;
++        max-height: calc((100 * var(--vh)) - 68px - var(--sat) - var(--sab)); max-height: calc((100dvh / var(--ui-zoom)) - 68px - var(--sat) - var(--sab));
 +        overflow: auto; padding: 14px; }
-+      .dlg-wide { min-width: 0; max-width: min(460px, calc(100vw - 16px)); }
++      .dlg-wide { min-width: 0; max-width: min(460px, calc((100 * var(--vw)) - 16px)); }
 +    }
-+    @media (max-height: 480px) { .dlg-card { margin-top: 8px; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); } }
++    @media (max-height: 480px) { .dlg-card { margin-top: 8px; max-height: calc((100 * var(--vh)) - 16px); max-height: calc((100dvh / var(--ui-zoom)) - 16px); } }
 +    /* Set-up wizard: one column on a phone, tighter margins. */
 +    @media (max-width: 760px), (max-height: 640px) {
 +      .wz-header { padding: 10px 14px; } .wz-step { right: 14px; top: 12px; }
@@ -117,7 +117,7 @@ index b245aec..f043ba1 100644
 +
 +    /* Right bar (field operations): same treatment as the left bar - stays on the screen, scrolls, smaller buttons on short screens;
 +       the roll gauge + camera pad move left of it so they never sit underneath. */
-+    #rightnav { max-height: calc(100vh - 56px - var(--sat) - var(--sab) - 8px); overflow-y: auto; box-sizing: border-box;
++    #rightnav { max-height: calc((100 * var(--vh)) - 56px - var(--sat) - var(--sab) - 8px); overflow-y: auto; box-sizing: border-box;
 +      scrollbar-width: none; overscroll-behavior: contain; touch-action: pan-y; }
 +    #rightnav::-webkit-scrollbar { display: none; }
 +    #rightnav .rn-btn { flex: 0 0 auto; }
@@ -157,8 +157,8 @@ index b245aec..f043ba1 100644
 +       Pin it to the right edge of the screen and let it scroll if the screen is short. */
 +    @media (max-width: 900px), (max-height: 640px) {
 +      #sb-gpscard { position: fixed; left: auto; right: calc(6px + var(--sar)); top: calc(var(--sat) + 52px);
-+        min-width: 0; width: max-content; max-width: calc(100vw - 12px - var(--sar)); box-sizing: border-box;
-+        max-height: calc(100vh - 60px - var(--sat) - var(--sab)); max-height: calc(100dvh - 60px - var(--sat) - var(--sab));
++        min-width: 0; width: max-content; max-width: calc((100 * var(--vw)) - 12px - var(--sar)); box-sizing: border-box;
++        max-height: calc((100 * var(--vh)) - 60px - var(--sat) - var(--sab)); max-height: calc((100dvh / var(--ui-zoom)) - 60px - var(--sat) - var(--sab));
 +        overflow-y: auto; }
 +    }
 +    #sb-fix, #sb-age, #sb-rot { white-space: nowrap; }
@@ -173,7 +173,7 @@ index b245aec..f043ba1 100644
 +      .fj-btnrow .cfg-act { flex: 1 1 auto; }
 +      .fj-namerow { flex-wrap: wrap; }
 +      .fj-namerow .fj-tx { flex: 1 1 100%; min-width: 0; }
-+      .fj-list { max-height: 34vh; overflow-y: auto; }
++      .fj-list { max-height: (34 * var(--vh)); overflow-y: auto; }
 +    }
 +    @media (min-width: 640px) and (max-height: 640px) {
 +      .fj-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
@@ -184,8 +184,8 @@ index b245aec..f043ba1 100644
 +    /* Pop-up messages (alarms, hints, toasts) are centred with left:50%, which left them only half a screen wide to
 +       fit in: tall, narrow boxes on a phone. Let them size to their text, up to the screen width. */
 +    #toast, #hwmsg, #headland-hud, #maptap-hint, #reverse-badge, #maptap-cancel, #draw-toolbar {
-+      width: max-content; max-width: calc(100vw - 16px - var(--sal) - var(--sar)); }
-+    #toast, #hwmsg { max-width: min(560px, calc(100vw - 16px - var(--sal) - var(--sar))); }
++      width: max-content; max-width: calc((100 * var(--vw)) - 16px - var(--sal) - var(--sar)); }
++    #toast, #hwmsg { max-width: min(560px, calc((100 * var(--vw)) - 16px - var(--sal) - var(--sar))); }
 +    @media (max-width: 900px) { #toast, #hwmsg { box-sizing: border-box; } }
 +    #draw-toolbar { flex-wrap: wrap; justify-content: center; }
 +    /* Compact phone UI: the menus, bars and map pad were sized for a tablet and covered most of a phone's map. */
@@ -201,7 +201,7 @@ index b245aec..f043ba1 100644
 +      #bottomnav .bn-bar { gap: 4px; padding: 5px; }
 +      #bottomnav .bn-btn { width: 42px; height: 42px; padding: 5px; }
 +      #sectionbar { padding: 5px; gap: 3px; }
-+      #sectionbar { max-width: calc(100vw - 8px); box-sizing: border-box; }
++      #sectionbar { max-width: calc((100 * var(--vw)) - 8px); box-sizing: border-box; }
 +      #sectionbar .sec-row { width: 100%; }
 +      #sectionbar .sec-btn { flex: 1 1 0; min-width: 22px; width: auto; max-width: 40px; height: 30px; font-size: 11px; }
 +      #simbar .sim-btn, #simbar .sim-toggle { height: 34px; font-size: 12px; }
@@ -232,7 +232,7 @@ index b245aec..f043ba1 100644
 +      .cfg-act { padding: 6px 8px; font-size: 12px; }
 +      .cfg-tgl, .cfg-num { height: 30px; }
 +      .lang-btn { height: 32px; }
-+      .lang-list { max-height: 50vh; }
++      .lang-list { max-height: (50 * var(--vh)); }
 +      .cfg-grid { gap: 5px 10px; }
 +      .fo-pill { margin-top: 8px; padding: 5px 10px; font-size: 12px; }
 +    }
@@ -242,9 +242,9 @@ index b245aec..f043ba1 100644
 +      :root { --uiz: 0.85; }
 +      html .ln-panel { zoom: var(--uiz);
 +        left: calc((var(--lnoff) + var(--sal)) / var(--uiz)); top: calc((56px + var(--sat)) / var(--uiz));
-+        max-width: calc((100vw - var(--lnoff) - var(--sal) - var(--sar) - 8px) / var(--uiz));
-+        max-height: calc((100vh - 56px - var(--sat) - var(--sab) - 8px) / var(--uiz));
-+        max-height: calc((100dvh - 56px - var(--sat) - var(--sab) - 8px) / var(--uiz)); }
++        max-width: calc(((100 * var(--vw)) - var(--lnoff) - var(--sal) - var(--sar) - 8px) / var(--uiz));
++        max-height: calc(((100 * var(--vh)) - 56px - var(--sat) - var(--sab) - 8px) / var(--uiz));
++        max-height: calc(((100dvh / var(--ui-zoom)) - 56px - var(--sat) - var(--sab) - 8px) / var(--uiz)); }
 +    }
 +    @media (max-width: 560px) {
 +      #statusbar #sb-speed, #statusbar #sb-hdg { font-size: 17px; }
@@ -252,13 +252,13 @@ index b245aec..f043ba1 100644
 +    }
 +    /* Same 85% phone scale for the dialogs; the diagnostic chart cards must fit next to the left menu. */
 +    @media (max-width: 560px), (max-height: 480px) {
-+      .dlg-card { zoom: var(--uiz); width: calc((100vw - 16px) / var(--uiz)); margin-top: calc(60px / var(--uiz));
-+        max-height: calc((100vh - 68px - var(--sat) - var(--sab)) / var(--uiz));
-+        max-height: calc((100dvh - 68px - var(--sat) - var(--sab)) / var(--uiz)); }
-+      .chart-card { left: calc(var(--lnoff) + var(--sal)); width: min(408px, calc(100vw - var(--lnoff) - var(--sal) - var(--sar) - 8px)); }
++      .dlg-card { zoom: var(--uiz); width: calc(((100 * var(--vw)) - 16px) / var(--uiz)); margin-top: calc(60px / var(--uiz));
++        max-height: calc(((100 * var(--vh)) - 68px - var(--sat) - var(--sab)) / var(--uiz));
++        max-height: calc(((100dvh / var(--ui-zoom)) - 68px - var(--sat) - var(--sab)) / var(--uiz)); }
++      .chart-card { left: calc(var(--lnoff) + var(--sal)); width: min(408px, calc((100 * var(--vw)) - var(--lnoff) - var(--sal) - var(--sar) - 8px)); }
 +    }
 +    @media (max-height: 480px) {
-+      .dlg-card { margin-top: 8px; max-height: calc((100dvh - 16px) / var(--uiz)); }
++      .dlg-card { margin-top: 8px; max-height: calc(((100dvh / var(--ui-zoom)) - 16px) / var(--uiz)); }
 +    }
 +    @media (max-width: 560px) {
 +      .wz-footer { padding: 8px 10px; gap: 6px; flex-wrap: wrap; }
@@ -301,19 +301,19 @@ index b245aec..f043ba1 100644
 +    @media (max-width: 900px), (max-height: 640px) {
 +      html .as-shell { padding: 0; }
 +      .as-statusbar { position: sticky; bottom: 0; background: var(--panel); z-index: 1; }
-+      #rj-list, #agu-list, #agd-list, #it-list, #rp-list, .fj-list { max-height: 34vh !important; overflow-y: auto; }
++      #rj-list, #agu-list, #agd-list, #it-list, #rp-list, .fj-list { max-height: (34 * var(--vh)) !important; overflow-y: auto; }
 +      #vs-tree, #br-status { overflow-wrap: anywhere; }
 +      #draw-toolbar { pointer-events: none; }
 +      #draw-toolbar button { pointer-events: auto; }
-+      #leftnav, #rightnav { max-height: calc(100dvh - 56px - var(--sat) - var(--sab) - 8px); }
++      #leftnav, #rightnav { max-height: calc((100dvh / var(--ui-zoom)) - 56px - var(--sat) - var(--sab) - 8px); }
 +    }
 +    @media (max-width: 760px), (max-height: 640px) { html .ln-wide { width: 360px; } }
 +    @media (max-width: 900px) and (max-height: 640px) {
-+      #bottomstack { left: calc(50% + (var(--lnoff) - 56px) / 2); max-width: calc(100vw - var(--lnoff) - 64px); }
-+      #simbar, #bottomnav .bn-bar { max-width: calc(100vw - var(--lnoff) - 64px); }
++      #bottomstack { left: calc(50% + (var(--lnoff) - 56px) / 2); max-width: calc((100 * var(--vw)) - var(--lnoff) - 64px); }
++      #simbar, #bottomnav .bn-bar { max-width: calc((100 * var(--vw)) - var(--lnoff) - 64px); }
 +    }
 +    @media (max-height: 480px) {
-+      .bn-flyout { box-sizing: border-box; max-height: calc(100dvh - 160px - var(--sat) - var(--sab)); overflow-y: auto; }
++      .bn-flyout { box-sizing: border-box; max-height: calc((100dvh / var(--ui-zoom)) - 160px - var(--sat) - var(--sab)); overflow-y: auto; }
 +      body:has(#simbar.open) #rollgauge { display: none; }
 +      body:has(#simbar.open) #onscreenbtns { bottom: calc(var(--stackh, 60px) + 8px + var(--sab)); }
 +    }
